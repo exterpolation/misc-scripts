@@ -1,2 +1,2 @@
 # ahk-scripts
-Repo for my day-to-day .ahk scripts (mostly trying to fix the italian keyboard)
+Repo for my day-to-day scripts (mostly using .ahk and .py)
