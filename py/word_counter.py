@@ -19,8 +19,11 @@ logo = (fr"""{Fore.WHITE}
 
 
 def setup_console() -> None:
-    os.system("clear")
-    os.system("mode con: cols=105 lines=30")
+    if os.name == 'nt':  # For Windows
+        os.system("cls")
+    else:  # For Linux and other Unix-like systems
+        os.system("clear")
+    os.system("mode con: cols=105 lines=30")  # Set the console size
 
 
 def center_text(text: str, total_width: int = 101) -> str:
@@ -96,55 +99,80 @@ def count_words_from_file_dialog() -> None:
     count_words_from_file(file_path)
 
 
+def print_credits() -> None:
+    print(f"{Fore.WHITE}{center_text('Credits')}\n")
+    print(f"{Fore.WHITE}{center_text('Made by: Lexia')}")
+    print(f"{Fore.WHITE}{center_text('Git: github.com/exterpolation')}")
+    print(f"{Fore.WHITE}{center_text('Dsc: tickflow | 659022591071223819')}")
+    print(f"{Fore.WHITE}{center_text('IG: @peepyourclique | @ripbypassed')}")
+    print(f"{Fore.LIGHTGREEN_EX}{center_text('Thank you for using my tool <3')}{Fore.RESET}")
+
+
+def handle_no_args():
+    if len(sys.argv) > 2:
+        print(f"{Fore.YELLOW}Warning: Ignoring additional arguments.{Fore.RESET}")
+    print_help()
+
+def handle_t():
+    if len(sys.argv) > 2:
+        count_words_from_console(' '.join(sys.argv[2:]))
+    else:
+        count_words_from_console()
+
+def handle_ts():
+    if len(sys.argv) > 2:
+        print(f"{Fore.YELLOW}Warning: Ignoring additional arguments.{Fore.RESET}")
+    count_words_from_console(count_spaces=True)
+
+def handle_f():
+    if len(sys.argv) < 3:
+        print(f"{Fore.RED}Error: No file path provided.{Fore.RESET}")
+        return 1
+    count_words_from_file(sys.argv[2])
+
+def handle_fw():
+    if len(sys.argv) > 2:
+        print(f"{Fore.YELLOW}Warning: Ignoring additional arguments.{Fore.RESET}")
+    count_words_from_file_dialog()
+
+def handle_c():
+    print_credits()
+
+def handle_invalid():
+    print(f"{Fore.RED}Error: Invalid flag.{Fore.RESET}")
+    print_help()
+
 def main() -> int:
     setup_console()
     print(logo)
 
-    if len(sys.argv) == 1 or sys.argv[1] == "-h":
-        if len(sys.argv) > 2:
-            print(f"{Fore.YELLOW}Warning: Ignoring additional arguments.{Fore.RESET}")
-            print_help()
-        else:
-            print_help()
-    elif sys.argv[1] == "-t":
-        # if arguments are being given, pass it to the function
-        if len(sys.argv) > 2:
-            count_words_from_console(' '.join(sys.argv[2:]))
-        else:
-            count_words_from_console()
-    elif sys.argv[1] == "-ts":
-        if len(sys.argv) > 2:
-            print(f"{Fore.YELLOW}Warning: Ignoring additional arguments.{Fore.RESET}")
-            count_words_from_console(count_spaces=True)
-        else:
-            count_words_from_console(count_spaces=True)
-    elif sys.argv[1] == "-f":
-        if len(sys.argv) < 3:
-            print(f"{Fore.RED}Error: No file path provided.{Fore.RESET}")
-            return 1
-        count_words_from_file(sys.argv[2])
-    elif sys.argv[1] == "-fw":
-        if len(sys.argv) > 2:
-            print(f"{Fore.YELLOW}Warning: Ignoring additional arguments.{Fore.RESET}")
-            count_words_from_file_dialog()
-        else:
-            count_words_from_file_dialog()
-    elif sys.argv[1] == "-c":
-        print(f"{Fore.WHITE}{center_text('Credits')}\n")
-        print(f"{Fore.WHITE}{center_text('Made by: Lexia')}")
-        print(f"{Fore.WHITE}{center_text('Git: github.com/exterpolation')}")
-        print(f"{Fore.WHITE}{center_text('Dsc: tickflow | 659022591071223819')}")
-        print(f"{Fore.WHITE}{center_text('IG: @peepyourclique | @ripbypassed')}")
-        print(f"{Fore.LIGHTGREEN_EX}{center_text('Thank you for using my tool <3')}{Fore.RESET}")
-    else:
-        print(f"{Fore.RED}Error: Invalid flag.{Fore.RESET}")
-        print_help()
+    if len(sys.argv) == 1:
+        handle_no_args()
+        return 0
+
+    match sys.argv[1]:
+        case "-h":
+            handle_no_args()
+        case "-t":
+            handle_t()
+        case "-ts":
+            handle_ts()
+        case "-f":
+            return handle_f()
+        case "-fw":
+            handle_fw()
+        case "-c":
+            handle_c()
+        case _:
+            handle_invalid()
 
     return 0
-
 
 if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
         pass
+    except Exception as e:
+        print(f"{Fore.RED}An unexpected error occurred: {e}{Fore.RESET}")
+        sys.exit(1)
