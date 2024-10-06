@@ -8,6 +8,7 @@ from moviepy.editor import VideoFileClip
 from pathlib import Path
 from colorama import Fore, init
 from time import sleep
+import webbrowser  # For opening the VLC download page
 
 # Initialize colorama
 init(autoreset=True)
@@ -31,17 +32,8 @@ def setup_console(length: int = 0, width: int = 0) -> None:
     os.system(f"mode con: cols={length} lines={width}")  # Set the console size
 
 
-# Custom ArgumentParser to format error messages
-class CustomArgumentParser(argparse.ArgumentParser):
-    def error(self, message):
-        # Print error message in red
-        sys.stderr.write(f"{Fore.RED}error: {message}{Fore.RESET}\n")
-        self.print_help()  # Print the help message
-        sys.exit(1)  # Exit with error
-
-
 # Function to convert video to mp3
-def convert_video_to_mp3(input_video_path, output_mp3_path):
+def convert_video_to_mp3(input_video_path: str, output_mp3_path: str) -> None:
     try:
         video = VideoFileClip(input_video_path)
         video.audio.write_audiofile(output_mp3_path)
@@ -57,13 +49,20 @@ def convert_video_to_mp3(input_video_path, output_mp3_path):
 
 
 # Function to open the converted MP3 file using VLC
-def open_with_vlc(file_path):
-    vlc_path = r"C:\Program Files\VideoLAN\VLC\vlc.exe"  # Change this to your VLC path, defaults to the window vlc path
-    try:
-        # Check if VLC is installed
-        # subprocess.check_call([vlc_path, "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        # TODO: The line above makes a window pop up and the user has to press enter to close it, needs a fix
+def open_with_vlc(file_path: str) -> None:
+    # Determine VLC installation path based on the operating system
+    match sys.platform:
+        case "win32":  # Windows
+            vlc_path = r"C:\Program Files\VideoLAN\VLC\vlc.exe"
+        case "darwin":  # macOS
+            vlc_path = "/Applications/VLC.app/Contents/MacOS/VLC"
+        case _:  # Linux and other Unix-like systems
+            vlc_path = "/usr/bin/vlc"  # Common installation path for Linux
 
+    if not check_vlc_installation(vlc_path):  # Check if VLC is installed
+        return
+
+    try:
         # Construct the VLC command with the full file path
         vlc_command = [vlc_path, os.path.abspath(file_path)]
 
@@ -73,14 +72,29 @@ def open_with_vlc(file_path):
 
         # Use subprocess.Popen with startupinfo to suppress the console window
         subprocess.Popen(vlc_command, startupinfo=startupinfo, shell=True)
-    except FileNotFoundError:
-        print(f"{Fore.RED}VLC is not found at {vlc_path}. Please check the path.{Fore.RESET}")
     except subprocess.CalledProcessError:
-        print(f"{Fore.RED}VLC is not installed. Please install VLC before opening the file.{Fore.RESET}")
+        print(f"{Fore.RED}VLC failed to open the file. Please install VLC before opening the file.{Fore.RESET}")
+
+
+# Function to check if VLC is installed and prompt for installation if not
+def check_vlc_installation(vlc_path: str) -> bool:
+    if not os.path.exists(vlc_path):
+        print(f"{Fore.RED}VLC is not found at {vlc_path}. Please install VLC before opening the file.{Fore.RESET}")
+        install_vlc_prompt()  # Prompt for installation
+        return False
+    return True
+
+
+# Function to prompt user to install VLC
+def install_vlc_prompt() -> None:
+    print(f"{Fore.YELLOW}You can download VLC from: {Fore.CYAN}https://www.videolan.org/vlc/{Fore.RESET}")
+    open_link = input(f"{Fore.YELLOW}Would you like to open the VLC download page? (y/n): {Fore.RESET}")
+    if open_link.lower() == 'y':
+        webbrowser.open("https://www.videolan.org/vlc/")  # Open the VLC download page in the browser
 
 
 # Function to get default download directory
-def get_default_download_dir():
+def get_default_download_dir() -> str:
     if sys.platform == 'nt':
         return os.path.join(os.path.expanduser('~'), 'Downloads')
     else:
@@ -88,7 +102,7 @@ def get_default_download_dir():
 
 
 # Tkinter file chooser for video
-def choose_file():
+def choose_file() -> str:
     root = Tk()
 
     # Set window title and icon
@@ -101,18 +115,19 @@ def choose_file():
 
 
 # Function to print help message
-def print_help():
+def print_help() -> None:
     print(f"{Fore.YELLOW}Usage: py video_to_mp3.py <flag> <argument>\n{Fore.RESET}")
     print(f"{Fore.CYAN}Flags:")
     print(f"{Fore.WHITE} └── {Fore.CYAN}-d    Specify the video file directory")
     print(f"{Fore.WHITE} │   └── {Fore.CYAN}-dp   Use a file dialog to choose the video file")
     print(f"{Fore.WHITE} └── {Fore.CYAN}-o    Specify the output directory for the MP3 file (default: Downloads)")
     print(f"{Fore.WHITE} └── {Fore.CYAN}-v    Open the converted MP3 file using VLC (requires VLC installation)")
-    print(f"{Fore.WHITE} └── {Fore.CYAN}-h    Print this help page")
+    print(f"{Fore.WHITE} └── {Fore.CYAN}-h    Print the help page")
 
 
 # Main function to handle arguments and convert video
-def main():
+# Main function to handle arguments and convert video
+def main() -> int:
     setup_console(length=100, width=30)
     print(logo)
 
@@ -121,7 +136,7 @@ def main():
         sys.argv.append("-h")
 
     # Argument parsing with custom -h argument
-    parser = CustomArgumentParser(description="Convert video to MP3 format", add_help=False)
+    parser = argparse.ArgumentParser(description="Convert video to MP3 format", add_help=False)
     parser.add_argument('-d', '--directory', help="Specify the video file directory")
     parser.add_argument('-dp', '--dialog', action='store_true', help="Use a file dialog to choose the video file")
     parser.add_argument('-o', '--output', help="Specify the output directory for the MP3 file")
@@ -135,21 +150,29 @@ def main():
         print_help()
         return 0
 
+    # Initialize input_video and error flag
+    input_video = None
+    error_flag = False
+
     # Pattern matching with match-case
     match sys.argv[1] if len(sys.argv) > 1 else None:
         case "-d":
             input_video = args.directory
             if not input_video or not os.path.isfile(input_video):
-                parser.error("Invalid or missing video file path.")  # This will now use the custom error method
-                return 1
+                print(f"{Fore.RED}error: invalid or missing video file path.{Fore.RESET}")
+                error_flag = True
         case "-dp":
             input_video = choose_file()
             if not input_video:
-                print(f"{Fore.RED}No file selected.{Fore.RESET}")
-                return 1
+                print(f"{Fore.RED}error: no file selected.{Fore.RESET}")
+                error_flag = True
         case _:
-            parser.error("Invalid flag provided.")  # This will now use the custom error method
-            return 1
+            print(f"{Fore.RED}error: invalid flag provided.{Fore.RESET}")
+            error_flag = True
+
+    # Check for any errors
+    if error_flag:
+        return 1
 
     # Determine output path for MP3
     output_dir = args.output if args.output else get_default_download_dir()
@@ -162,6 +185,7 @@ def main():
     convert_video_to_mp3(input_video, output_mp3)
 
     return 0
+
 
 if __name__ == "__main__":
     try:
