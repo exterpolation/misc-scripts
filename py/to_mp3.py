@@ -41,9 +41,6 @@ def convert_video_to_mp3(input_video_path: str, output_mp3_path: str) -> None:
         print(f"{Fore.GREEN}Conversion complete: {Fore.WHITE}{output_mp3_path}")
         sleep(1)
 
-        # Open the converted MP3 file using VLC
-        open_with_vlc(output_mp3_path)
-
     except Exception as e:
         print(f"{Fore.RED}An error occurred: {e}{Fore.RESET}")
 
@@ -133,7 +130,6 @@ def print_help() -> None:
 
 
 # Main function to handle arguments and convert video
-# Main function to handle arguments and convert video
 def main() -> int:
     setup_console(length=100, width=30)
     print(logo)
@@ -190,6 +186,10 @@ def main() -> int:
 
     # Convert video to MP3
     convert_video_to_mp3(input_video, output_mp3)
+
+    # Only open VLC if the -v flag is specified
+    if args.view:
+        open_with_vlc(output_mp3)
 
     return 0
 
