@@ -161,6 +161,7 @@ def main():
     # Convert video to MP3
     convert_video_to_mp3(input_video, output_mp3)
 
+    return 0
 
 if __name__ == "__main__":
     try:
