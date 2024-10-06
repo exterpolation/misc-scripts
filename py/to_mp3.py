@@ -58,7 +58,7 @@ def convert_video_to_mp3(input_video_path, output_mp3_path):
 
 # Function to open the converted MP3 file using VLC
 def open_with_vlc(file_path):
-    vlc_path = r"C:\Program Files\VideoLAN\VLC\vlc.exe"  # Change this to your VLC path
+    vlc_path = r"C:\Program Files\VideoLAN\VLC\vlc.exe"  # Change this to your VLC path, defaults to the window vlc path
     try:
         # Check if VLC is installed
         # subprocess.check_call([vlc_path, "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
