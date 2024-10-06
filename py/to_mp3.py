@@ -7,7 +7,6 @@ from tkinter.filedialog import askopenfilename
 from moviepy.editor import VideoFileClip
 from pathlib import Path
 from colorama import Fore, init
-from time import sleep
 import webbrowser  # For opening the VLC download page
 
 # Initialize colorama
@@ -39,7 +38,6 @@ def convert_video_to_mp3(input_video_path: str, output_mp3_path: str) -> None:
         video.audio.write_audiofile(output_mp3_path)
         video.close()
         print(f"{Fore.GREEN}Conversion complete: {Fore.WHITE}{output_mp3_path}")
-        sleep(1)
 
     except Exception as e:
         print(f"{Fore.RED}An error occurred: {e}{Fore.RESET}")
@@ -75,6 +73,7 @@ def open_with_vlc(file_path: str) -> None:
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # Suppress the window
 
         # Use subprocess.Popen with startupinfo to suppress the console window
+        print(f"\n{Fore.CYAN}Opening the file with VLC...{Fore.RESET}\n")
         subprocess.Popen(vlc_command, startupinfo=startupinfo, shell=True)
     except subprocess.CalledProcessError:
         print(f"{Fore.RED}VLC failed to open the file. Please install VLC before opening the file.{Fore.RESET}")
@@ -115,6 +114,15 @@ def choose_file() -> str:
     root.withdraw()  # Hide the root window initially
     file_path = askopenfilename(filetypes=[("Video files", "*.mp4 *.mkv *.avi *.mov *.flv")])
     root.destroy()  # Close the Tkinter window after the file selection
+
+    if file_path:  # Check if a file is selected
+        # Get absolute path without file name and the file name
+        absolute_path = Path(file_path).resolve().parent
+        file_name = Path(file_path).name
+
+        # Print the absolute path without the file name and the file name separated by a hyphen
+        print(f"{Fore.CYAN}Selected file: {Fore.WHITE}{absolute_path} - {file_name}{Fore.RESET}")
+
     return file_path
 
 
