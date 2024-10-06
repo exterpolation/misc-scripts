@@ -57,7 +57,14 @@ def open_with_vlc(file_path: str) -> None:
         case "darwin":  # macOS
             vlc_path = "/Applications/VLC.app/Contents/MacOS/VLC"
         case _:  # Linux and other Unix-like systems
-            vlc_path = "/usr/bin/vlc"  # Common installation path for Linux
+            possible_paths = [
+                "/usr/bin/vlc",
+                "/usr/local/bin/vlc",
+                "/usr/share/vlc/vlc",
+                "/snap/bin/vlc",  # If installed via Snap
+                "/usr/lib/vlc/vlc"  # Another common installation path
+            ]
+            vlc_path = next((path for path in possible_paths if os.path.exists(path)), None)
 
     if not check_vlc_installation(vlc_path):  # Check if VLC is installed
         return
