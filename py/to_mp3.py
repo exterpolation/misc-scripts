@@ -123,7 +123,7 @@ def choose_file() -> str:
 
 # Function to print help message
 def print_help() -> None:
-    print(f"{Fore.YELLOW}Usage: py video_to_mp3.py <flag> <argument>\n{Fore.RESET}")
+    print(f"{Fore.YELLOW}Usage: py to_mp3.py <flag> <argument>\n{Fore.RESET}")
     print(f"{Fore.CYAN}Flags:")
     print(f"{Fore.WHITE} └── {Fore.CYAN}-d    Specify the video file directory")
     print(f"{Fore.WHITE} │   └── {Fore.CYAN}-dp   Use a file dialog to choose the video file")
