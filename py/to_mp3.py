@@ -26,9 +26,10 @@ logo = (fr"""{Fore.WHITE}
 def setup_console(length: int = 0, width: int = 0) -> None:
     if os.name == 'nt':  # For Windows
         os.system("cls")
+        os.system(f"mode con: cols={length} lines={width}")  # Set the console size
     else:  # For Linux and other Unix-like systems
         os.system("clear")
-    os.system(f"mode con: cols={length} lines={width}")  # Set the console size
+        os.system(f"stty rows {width} columns {length}")  # Set the console size
 
 
 # Function to convert video to mp3
