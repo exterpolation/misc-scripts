@@ -17,87 +17,53 @@ logo = (fr"""{Fore.WHITE}
                               ░         ░                                                              
 """)
 
-
 def setup_console() -> None:
-    if os.name == 'nt':  # For Windows
-        os.system("cls")
-    else:  # For Linux and other Unix-like systems
-        os.system("clear")
-    os.system("mode con: cols=105 lines=30")  # Set the console size
-
+    os.system("cls" if os.name == 'nt' else "clear")
+    os.system("mode con: cols=105 lines=30")
 
 def center_text(text: str, total_width: int = 101) -> str:
-    # Calculate total spaces needed
     total_spaces = total_width - len(text)
-
-    # Calculate left spaces and right spaces
     left_spaces = total_spaces // 2
-    right_spaces = total_spaces - left_spaces  # This ensures any odd space goes to the right
-
     return ' ' * left_spaces + text + ' ' * right_spaces
-
-
-# Constants for drawing the tree structure
-PIPE = "│"
-ELBOW = "└──"
-TEE = "├──"
-
 
 def print_help() -> None:
     print(f"{Fore.YELLOW}Usage: py word_counter.py <flag> <argument>\n")
     print(f"{Fore.CYAN}Flags:")
-    print(f"{Fore.WHITE}{ELBOW} {Fore.CYAN}-t    Take the input directly from the console (works with or without arguments)")
-    print(f"{Fore.WHITE}{PIPE}   {ELBOW} {Fore.CYAN}-ts    Take the input from the console and prints how many words + spaces")
-    print(f"{Fore.WHITE}{TEE} {Fore.CYAN}-f    Take the input from a file (dir must be specified)")
-    print(f"{Fore.WHITE}{PIPE}   {ELBOW} {Fore.CYAN}-fw    Take the input from a file (choosen from a dialogue window)")
-    print(f"{Fore.WHITE}{ELBOW} {Fore.CYAN}-c    Print the credits for this tool{Fore.RESET}")
-    print(f"{Fore.WHITE}{ELBOW} {Fore.CYAN}-h    Print this page\n{Fore.RESET}\n")
-
+    print(f"{Fore.WHITE}└── {Fore.CYAN}-t    Take the input directly from the console (works with or without arguments)")
+    print(f"{Fore.WHITE}│   └── {Fore.CYAN}-ts    Take the input from the console and prints how many words + spaces")
+    print(f"{Fore.WHITE}├── {Fore.CYAN}-f    Take the input from a file (dir must be specified)")
+    print(f"{Fore.WHITE}│   └── {Fore.CYAN}-fw    Take the input from a file (choosen from a dialogue window)")
+    print(f"{Fore.WHITE}└── {Fore.CYAN}-c    Print the credits for this tool{Fore.RESET}")
+    print(f"{Fore.WHITE}└── {Fore.CYAN}-h    Print this page\n{Fore.RESET}\n")
 
 def count_words_from_console(text: str = None, count_spaces: bool = False) -> None:
     try:
         if text is None:
             text = input("Enter the text: ")
-
         words = text.split()
-        if not count_spaces:
-            print(f"Number of words: {len(words)}")
-        else:
-            spaces = text.count(' ')
-            print(f"Number of words: {len(words)}")
-            print(f"Number of spaces: {spaces}")
-    except UnicodeDecodeError:
-        print(f"{Fore.RED}Error: The file contains characters that cannot be decoded with utf-8.{Fore.RESET}")
-    except FileNotFoundError:
-        print(f"{Fore.RED}Error: The specified file was not found.{Fore.RESET}")
+        print(f"Number of words: {len(words)}")
+        if count_spaces:
+            print(f"Number of spaces: {text.count(' ')}")
     except Exception as e:
         print(f"{Fore.RED}An unexpected error occurred: {e}{Fore.RESET}")
-
 
 def count_words_from_file(file_path: str) -> None:
     try:
         with open(file_path, "r") as file:
             text = file.read()
-            words = text.split()
-            print(f"Number of words: {len(words)}")
-    except UnicodeDecodeError:
-        print(f"{Fore.RED}Error: The file contains characters that cannot be decoded with utf-8.{Fore.RESET}")
-    except FileNotFoundError:
-        print(f"{Fore.RED}Error: The specified file was not found. (Maybe the dir was invalid?){Fore.RESET}")
-
+            print(f"Number of words: {len(text.split())}")
+    except Exception as e:
+        print(f"{Fore.RED}An unexpected error occurred: {e}{Fore.RESET}")
 
 def count_words_from_file_dialog() -> None:
     root = Tk()
     root.withdraw()
     file_path = askopenfilename()
     root.destroy()
-
-    if not file_path:
+    if file_path:
+        count_words_from_file(file_path)
+    else:
         print(f"{Fore.RED}No file selected.{Fore.RESET}")
-        return
-
-    count_words_from_file(file_path)
-
 
 def print_credits() -> None:
     print(f"{Fore.WHITE}{center_text('Credits')}\n")
@@ -107,17 +73,13 @@ def print_credits() -> None:
     print(f"{Fore.WHITE}{center_text('IG: @peepyourclique | @ripbypassed')}")
     print(f"{Fore.LIGHTGREEN_EX}{center_text('Thank you for using my tool <3')}{Fore.RESET}")
 
-
 def handle_no_args():
     if len(sys.argv) > 2:
         print(f"{Fore.YELLOW}Warning: Ignoring additional arguments.{Fore.RESET}")
     print_help()
 
 def handle_t():
-    if len(sys.argv) > 2:
-        count_words_from_console(' '.join(sys.argv[2:]))
-    else:
-        count_words_from_console()
+    count_words_from_console(' '.join(sys.argv[2:]) if len(sys.argv) > 2 else None)
 
 def handle_ts():
     if len(sys.argv) > 2:
@@ -145,11 +107,9 @@ def handle_invalid():
 def main() -> int:
     setup_console()
     print(logo)
-
     if len(sys.argv) == 1:
         handle_no_args()
         return 0
-
     match sys.argv[1]:
         case "-h":
             handle_no_args()
@@ -165,7 +125,6 @@ def main() -> int:
             handle_c()
         case _:
             handle_invalid()
-
     return 0
 
 if __name__ == "__main__":
